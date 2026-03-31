@@ -17,11 +17,13 @@ public class AuthController {
 
     private final AuthService authService;
 
+    // 회원가입
     @PostMapping("/auth/signup")
     public SignupResponse signup(@Valid @RequestBody SignupRequest signupRequest) {
         return authService.signup(signupRequest);
     }
 
+    // 로그인
     @PostMapping("/auth/signin")
     public SigninResponse signin(@Valid @RequestBody SigninRequest signinRequest) {
         return authService.signin(signinRequest);

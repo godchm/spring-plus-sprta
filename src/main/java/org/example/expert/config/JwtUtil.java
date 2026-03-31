@@ -23,6 +23,7 @@ public class JwtUtil {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
 
+    // secret.key
     @Value("${jwt.secret.key}")
     private String secretKey;
     private Key key;
@@ -34,7 +35,9 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(bytes);
     }
 
-    public String createToken(Long userId, String email, UserRole userRole) {
+
+    // 토큰 만들기.
+    public String createToken(Long userId, String email, UserRole userRole,String nickname) {
         Date date = new Date();
 
         return BEARER_PREFIX +
@@ -42,6 +45,7 @@ public class JwtUtil {
                         .setSubject(String.valueOf(userId))
                         .claim("email", email)
                         .claim("userRole", userRole)
+                        .claim("nickname", nickname)
                         .setExpiration(new Date(date.getTime() + TOKEN_TIME))
                         .setIssuedAt(date) // 발급일
                         .signWith(key, signatureAlgorithm) // 암호화 알고리즘
