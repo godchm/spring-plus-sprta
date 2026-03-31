@@ -1,5 +1,6 @@
 package org.example.expert.domain.todo.service;
 
+
 import lombok.RequiredArgsConstructor;
 import org.example.expert.client.WeatherClient;
 import org.example.expert.domain.common.dto.AuthUser;
@@ -17,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 //@Transactional(readOnly = true)
@@ -25,6 +28,7 @@ public class TodoService {
     private final TodoRepository todoRepository;
     private final WeatherClient weatherClient;
 
+    @Transactional
     public TodoSaveResponse saveTodo(AuthUser authUser, TodoSaveRequest todoSaveRequest) {
         User user = User.fromAuthUser(authUser);
 
@@ -47,10 +51,31 @@ public class TodoService {
         );
     }
 
-    public Page<TodoResponse> getTodos(int page, int size) {
+
+    // 페이징 조회
+    @Transactional(readOnly = true)
+    public Page<TodoResponse> getTodos(String weather, LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Todo> todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
+        Page<Todo> todos;
+
+        if (weather == null && startDate == null && endDate == null) {
+            todos = todoRepository.findAllByOrderByModifiedAtDesc(pageable);
+        } else if (weather != null && startDate == null && endDate == null) {
+            todos = todoRepository.searchByWeather(weather, pageable);
+        } else if (weather == null && startDate != null && endDate == null) {
+            todos = todoRepository.searchFrom(startDate, pageable);
+        } else if (weather == null && startDate == null && endDate != null) {
+            todos = todoRepository.searchTo(endDate, pageable);
+        } else if (weather == null && startDate != null && endDate != null) {
+            todos = todoRepository.searchPeriod(startDate, endDate, pageable);
+        } else if (weather != null && startDate != null && endDate == null) {
+            todos = todoRepository.searchWeatherFrom(weather, startDate, pageable);
+        } else if (weather != null && startDate == null && endDate != null) {
+            todos = todoRepository.searchWeatherTo(weather, endDate, pageable);
+        } else {
+            todos = todoRepository.searchWeatherPeriod(weather, startDate, endDate, pageable);
+        }
 
         return todos.map(todo -> new TodoResponse(
                 todo.getId(),
@@ -63,6 +88,8 @@ public class TodoService {
         ));
     }
 
+    // 단건 조회
+    @Transactional(readOnly = true)
     public TodoResponse getTodo(long todoId) {
         Todo todo = todoRepository.findByIdWithUser(todoId)
                 .orElseThrow(() -> new InvalidRequestException("Todo not found"));
