@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.common.exception.ServerException;
 import org.example.expert.domain.user.enums.UserRole;
 import org.springframework.beans.factory.annotation.Value;
@@ -65,5 +66,20 @@ public class JwtUtil {
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
+    }
+
+    // 1. 요청이 들어옴
+    // 2. 헤더에서 JWT 꺼냄
+    // 3. JWT를 파싱해서 Claims 얻음
+    // 4. 그 Claims를 AuthUser로 변환
+    // 5. Spring Security의 Authentication principal로 넣음
+    // 즉, 클라이언트가 보낸 JWT 토큰 안의 사용자 정보를 꺼내는것.
+    public AuthUser getAuthUser(Claims claims) {
+        Long userId = Long.parseLong(claims.getSubject());
+        String email = claims.get("email", String.class);
+        String nickname = claims.get("nickname", String.class);
+        UserRole userRole = UserRole.valueOf(claims.get("userRole", String.class));
+
+        return new AuthUser(userId, email, userRole, nickname);
     }
 }
