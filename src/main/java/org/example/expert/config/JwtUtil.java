@@ -60,6 +60,7 @@ public class JwtUtil {
         throw new ServerException("Not Found Token");
     }
 
+    // 토큰 검증로직
     public Claims extractClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
