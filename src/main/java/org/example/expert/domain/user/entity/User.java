@@ -21,6 +21,11 @@ public class User extends Timestamped {
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
+
+    // 프로필 속성
+    private String profileImageKey;
+
+
     private String nickname;
 
     public User(String email, String password, UserRole userRole, String nickname) {
@@ -48,4 +53,11 @@ public class User extends Timestamped {
     public void updateRole(UserRole userRole) {
         this.userRole = userRole;
     }
+
+
+    // 프로필 업데이트
+    public void updateProfileImageKey(String profileImageKey) {
+        this.profileImageKey = profileImageKey;
+    }
+
 }

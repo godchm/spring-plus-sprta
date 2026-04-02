@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll() // 인증 검사를 안할거
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated() // 위에거 제외하고 다 열어줌.
                 )
                 .build();

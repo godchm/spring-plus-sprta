@@ -1,6 +1,8 @@
 package org.example.expert.domain.user.service;
 
+import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.example.expert.domain.common.exception.InvalidRequestException;
 import org.example.expert.domain.user.dto.request.UserChangePasswordRequest;
@@ -9,6 +11,12 @@ import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.net.URL;
+import java.time.Duration;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +25,9 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final S3Template s3Template;
+    private static final Duration PRESIGNED_URL_EXPIRATION = Duration.ofHours(1);
+
 
     public UserResponse getUser(long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new InvalidRequestException("User not found"));
@@ -48,4 +59,38 @@ public class UserService {
             throw new InvalidRequestException("새 비밀번호는 8자 이상이어야 하고, 숫자와 대문자를 포함해야 합니다.");
         }
     }
-}
+
+    @Value("${spring.cloud.aws.s3.bucket}")
+    private String bucket;
+
+    @Transactional
+    public String upload(long userId, MultipartFile file) {
+
+        try {
+           User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("등록된 멤버가 없다."));
+            String key = "uploads/"+userId + UUID.randomUUID() + "_" + file.getOriginalFilename();
+            s3Template.upload(bucket, key, file.getInputStream());
+
+
+            user.updateProfileImageKey(key);
+
+            return key;
+
+        } catch (IOException e) {
+            throw new IllegalArgumentException("파일 업로드 실패", e);
+        }
+    }
+
+
+    @Transactional(readOnly = true)
+    public URL getDownloadUrl(Long userId) {
+
+        String key = userRepository.findById(userId)
+                .orElseThrow()
+                .getProfileImageKey();
+
+        return s3Template.createSignedGetURL(bucket, key,PRESIGNED_URL_EXPIRATION);
+    }
+    }
+
