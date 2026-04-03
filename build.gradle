@@ -37,7 +37,7 @@ dependencies {
 
 
     // 파라미터/ s3
-    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:4.0.0-RC1')
+    implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.2.1')
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-parameter-store'
     implementation 'io.awspring.cloud:spring-cloud-aws-starter-s3'
 
