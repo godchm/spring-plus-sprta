@@ -16,6 +16,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.net.URL;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,7 +33,7 @@ public class UserService {
 
     public UserResponse getUser(long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new InvalidRequestException("User not found"));
-        return new UserResponse(user.getId(), user.getEmail());
+        return new UserResponse(user.getId(), user.getEmail(), user.getNickname());
     }
 
     @Transactional
@@ -60,37 +62,53 @@ public class UserService {
         }
     }
 
-    @Value("${spring.cloud.aws.s3.bucket}")
-    private String bucket;
+    public List<UserResponse> getUsersByNickname(String nickname) {
+        List<User> users = userRepository.findAllByNickname(nickname);
+        List<UserResponse> responses = new ArrayList<>();
 
-    @Transactional
-    public String upload(long userId, MultipartFile file) {
+        for (User user : users) {
+            Long id = user.getId();
+            String email = user.getEmail();
+            String userNickname = user.getNickname();
 
-        try {
-           User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("등록된 멤버가 없다."));
-            String key = "uploads/"+userId + UUID.randomUUID() + "_" + file.getOriginalFilename();
-            s3Template.upload(bucket, key, file.getInputStream());
-
-
-            user.updateProfileImageKey(key);
-
-            return key;
-
-        } catch (IOException e) {
-            throw new IllegalArgumentException("파일 업로드 실패", e);
+            responses.add(new UserResponse(id, email, userNickname));
         }
+
+        return responses;
     }
+}
 
-
-    @Transactional(readOnly = true)
-    public URL getDownloadUrl(Long userId) {
-
-        String key = userRepository.findById(userId)
-                .orElseThrow()
-                .getProfileImageKey();
-
-        return s3Template.createSignedGetURL(bucket, key,PRESIGNED_URL_EXPIRATION);
-    }
-    }
+//    @Value("${spring.cloud.aws.s3.bucket}")
+//    private String bucket;
+//
+//    @Transactional
+//    public String upload(long userId, MultipartFile file) {
+//
+//        try {
+//           User user = userRepository.findById(userId)
+//                    .orElseThrow(() -> new IllegalArgumentException("등록된 멤버가 없다."));
+//            String key = "uploads/"+userId + UUID.randomUUID() + "_" + file.getOriginalFilename();
+//            s3Template.upload(bucket, key, file.getInputStream());
+//
+//
+//            user.updateProfileImageKey(key);
+//
+//            return key;
+//
+//        } catch (IOException e) {
+//            throw new IllegalArgumentException("파일 업로드 실패", e);
+//        }
+//    }
+//
+//
+//    @Transactional(readOnly = true)
+//    public URL getDownloadUrl(Long userId) {
+//
+//        String key = userRepository.findById(userId)
+//                .orElseThrow()
+//                .getProfileImageKey();
+//
+//        return s3Template.createSignedGetURL(bucket, key,PRESIGNED_URL_EXPIRATION);
+//    }
+//    }
 
