@@ -1,22 +1,31 @@
 # SPRING PLUS
 
+## AWS 활용
+---
+
 ## Health Check
 ![img.png](img.png)
+
+---
 
 ## EC2
 ![img_1.png](img_1.png)
 ![img_2.png](img_2.png)
 ![img_3.png](img_3.png)
 
+---
 
 ## RDS
 ![img_4.png](img_4.png)
 ![img_5.png](img_5.png)
 
+---
+
 ## S3
 ![img_6.png](img_6.png)
 ![img_7.png](img_7.png)
 
+---
 
 ## IAM / Parameter Store
 ![img_8.png](img_8.png)
@@ -41,6 +50,7 @@
 #### (3). 복합 인덱스 조회
 ![img_14.png](img_14.png)
 
+---
 
 ### 3. 조회 성능 비교 
 #### (1). 조회 성능 비교
